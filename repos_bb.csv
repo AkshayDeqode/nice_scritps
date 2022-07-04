@@ -134,4 +134,3 @@ Sr No.	Status Bitbucket	Status Bamboo	Project Name	Bitbucket Group Name	Bitbucke
 132			CoreLibraries.SQL.MySQL	CoreLibraries	http://bitbucket.cssrd.local/projects/COR/repos/corelibraries.sql.mysql/browse		CoreLibraries	http://bamboo.cssrd.local/browse/COR-CSM-46/artifact	master			Done	
 133			Monitoring.Client	CS	http://bitbucket.cssrd.local/projects/CS/repos/monitoring.client/browse		Communication Surveillance	http://bamboo.cssrd.local/browse/CS-MC1-2/artifact	master			Done	
 134			Observe.REST	CS	http://bitbucket.cssrd.local/projects/CS/repos/observe.rest/browse		Communication Surveillance	http://bamboo.cssrd.local/browse/CS-OB-5/artifact	master			Done	
-													

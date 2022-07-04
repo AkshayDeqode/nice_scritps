@@ -27,21 +27,19 @@ gl.auth()
 gl_logs = {}
 
 
-bitbucket_proj = bitbucket.project(os.getenv("GITLAB_PROJECT"))
 
-b_repo = bitbucket.repo_list(bitbucket_proj["key"])
 
-bb_branches = bitbucket.get_branches(bitbucket_proj['key'], os.getenv("GITLAB_PROJECT_REPO"), details=False)
+
 
 
 def find_repositories():
-    found_repos = list()
-    not_found_repos = list()
+    found_repos = pd.DataFrame(columns = ['repo_name', 'gl_web_url', 'project_id'])
+    not_found_repos = pd.DataFrame(columns = ['repo_name'])
     repos = get_repo.get_groups()
     for repo_name, repo_link  in repos.items():
         if repo_link is np.nan:
             print(f"Error: repo link not found: {repo_name}")
-            not_found_repos.append(repo_name)
+            not_found_repos = pd.concat([not_found_repos, pd.DataFrame([{'repo_name': repo_name}])], ignore_index=True)
         else:
             start_string = '/repos/'
             end_string = '/browse'
@@ -51,96 +49,113 @@ def find_repositories():
 
             # print(repo_name, repo_link[start_index:end_index])
             try:
-                gl_repos_probable_urls = [x.attributes['web_url'].rsplit('/', 1)[-1].lower() for x in gl.projects.list(max_retries=-1, search=repo_link[start_index:end_index], all = True)]
-                if repo_link[start_index:end_index] in gl_repos_probable_urls:
-                    found_repos.append(repo_name)
-                else:
-                    not_found_repos.append(repo_name)
-                    # if gl_repo.attributes['name'].lower() == repo_name.lower():
-                    #     found_repos.append(gl_repo.attributes['id'])
-                
-            except:
+                gl_repos = gl.projects.list(max_retries=-1, search=repo_link[start_index:end_index], all = True)
+
+                try:
+                    repo_idx = [x.attributes['web_url'].rsplit('/', 1)[-1].lower() for x in gl_repos].index(repo_link[start_index:end_index])
+                    repo_dict = pd.DataFrame([{'repo_name':repo_name,'gl_web_url':gl_repos[repo_idx].attributes['web_url'], 'project_id':gl_repos[repo_idx].attributes['id']}])
+                    found_repos = pd.concat([found_repos, repo_dict], ignore_index=True)
+                    # found_repos.append({'repo_name':repo_name,'gl_web_url':gl_repos[repo_idx].attributes['web_url'], 'project_id':gl_repos[repo_idx].attributes['id']}, ignore_index=True)               
+                except ValueError as exc:
+                    not_found_repos = pd.concat([not_found_repos, pd.DataFrame([{'repo_name': repo_name}])], ignore_index=True)
+                    
+            except:  
                 print(f"no repo exist for Repository: {repo_name}")
-            
+        
 
     # Creating two files to document the found repositories and 404 repositories
-    with open('found_repos.txt','w') as f:
-        for item in found_repos:
-            f.write("%s\n" % item)
-
-    with open('not_found_repos.txt','w') as f:
-        for item in not_found_repos:
-            f.write("%s\n" % item)
-
-find_repositories()
+    found_repos.to_csv('found_repos.csv', index = False)
+    not_found_repos.to_csv('not_found_repos.csv', index = False)
 
 
-# try:
-#     gl_repo = gl.projects.list(max_retries=-1, search=os.getenv("GITLAB_PROJECT_REPO"))[0]
-# except:
-#     print("no repo exist")
-
-# branch_report = {"project": [],"repository": [], "status":[]}
-# for branch in bb_branches:
-#     bb_dict = {}
-#     gl_dict = {}
-#     try:
-#         gl_branch = gl_repo.branches.get(branch.get("displayId"), obey_rate_limit=False)
-#     except:
-#         print("no branch exist:", branch.get("displayId"))
-#         branch_report["status"].append("fail")
-#         branch_report["project"].append(os.getenv("GITLAB_PROJECT"))
-#         branch_report["repository"].append(os.getenv("GITLAB_PROJECT_REPO"))       
-#         continue
-
-#     bb_commits = bitbucket.get_commits(bitbucket_proj["key"],os.getenv("GITLAB_PROJECT_REPO"),hash_newest=branch.get("latestCommit"),limit=99999)
-#     for data in bb_commits:
-#         try:
-#             bb_commit_id = data["id"]
-#             bb_message = data["message"].replace("\n", "")
-#             bb_author = data.get("author").get("displayName")
-#             bb_email = data.get("author").get("emailAddress")
-#             bb_dict[bb_commit_id] = [bb_message,bb_author,bb_email]
-#         except Exception as e:
-#             print(e, "bb")
-
-#     gl_branch_commits= gl_repo.commits.list(obey_rate_limit=False, all=True,max_retries=-1, query_parameters={"ref_name": gl_branch.name, "all": True})
-#     for g_commit in gl_branch_commits:
-#         try:
-#             gl_commit_id = g_commit.id
-#             gl_message = g_commit.message.replace("\n", "").lower()
-#             gl_author = g_commit.author_name.lower()
-#             gl_email = g_commit.committer_email
-#             gl_dict[gl_commit_id] = [gl_message, gl_author,gl_email]
-#         except Exception as e:
-#             print(e, "gg")
-
-#     is_branch_failed = False
-#     report = {"branch": [], "status":[]}
-#     for key in bb_dict:
-#         if key not in gl_dict:
-#             report["status"].append("fail")
-#             report["branch"].append(gl_branch.name)
-#             is_branch_failed = True
-#             break
-    
-#     if not is_branch_failed:
-#         report["status"].append("success")
-#         report["branch"].append(gl_branch.name)
 
 
-#     report = pd.DataFrame(report)
+def find_branches(found_repos):
+    branch_info = pd.DataFrame(columns = ['repo_name', 'branch_status', 'project_id'])
+    for idx, repo in found_repos.iterrows():
+        branches = list()
+        gl_project = gl.projects.get(repo['project_id'])
+        repo_name = repo['repo_name']
+        repo_url = repo['gl_web_url'].rsplit('/', 1)[-1]
+        print(repo_url)
+        group_name = get_repo.get_group_key(repo_name)
+        bitbucket_proj = bitbucket.project(group_name) 
+        try:
+            bb_branch_set = set([x['displayId'] for x in bitbucket.get_branches(bitbucket_proj['key'], repo_url, details=False, limit=999)])
+            gl_branch_set = set([x.attributes['name'] for x in gl_project.branches.list(all = True)])
+            branch_diff = bb_branch_set.difference(gl_branch_set)
+                
+            if len(branch_diff) == 0:
+                branch_info = pd.concat([branch_info, pd.DataFrame([{'repo_name':repo_name, 'branch_status':"Done",'project_id':repo['project_id'] }])], ignore_index=True)
+            else:
+                branch_info = pd.concat([branch_info, pd.DataFrame([{'repo_name':repo_name, 'branch_status':",".join(list(branch_diff)), 'project_id':repo['project_id']}])], ignore_index=True)
+        except:
+            print(f"Error in repo name: {repo_name}")
 
-#     if not os.path.exists('/home/ec2-user/cs-migration-setup/final_scripts/'+str(os.getenv("GITLAB_PROJECT"))):
-#         os.mkdir('/home/ec2-user/cs-migration-setup/final_scripts/'+str(os.getenv("GITLAB_PROJECT")))
-#         os.chdir("/home/ec2-user/cs-migration-setup/final_scripts/"+str(os.getenv("GITLAB_PROJECT")))
-#         if os.path.exists("/home/ec2-user/cs-migration-setup/final_scripts/"+str(os.getenv("GITLAB_PROJECT"))+str("/commit_status.")+str(os.getenv("GITLAB_PROJECT"))+str(".")+str(os.getenv("GITLAB_PROJECT_REPO"))+".csv"):
-#             report.to_csv("/home/ec2-user/cs-migration-setup/final_scripts/"+str(os.getenv("GITLAB_PROJECT"))+str("/commit_status.")+str(os.getenv("GITLAB_PROJECT"))+str(".")+str(os.getenv("GITLAB_PROJECT_REPO"))+".csv", mode="a", header=False, index=False)
-#         else:
-#             report.to_csv("/home/ec2-user/cs-migration-setup/final_scripts/"+str(os.getenv("GITLAB_PROJECT"))+str("/commit_status.")+str(os.getenv("GITLAB_PROJECT"))+str(".")+str(os.getenv("GITLAB_PROJECT_REPO"))+".csv", index=False)
-#     else:
-#         os.chdir("/home/ec2-user/cs-migration-setup/final_scripts/"+str(os.getenv("GITLAB_PROJECT")))
-#         if os.path.exists("/home/ec2-user/cs-migration-setup/final_scripts/"+str(os.getenv("GITLAB_PROJECT"))+str("/commit_status.")+str(os.getenv("GITLAB_PROJECT"))+str(".")+str(os.getenv("GITLAB_PROJECT_REPO"))+".csv"):
-#             report.to_csv("/home/ec2-user/cs-migration-setup/final_scripts/"+str(os.getenv("GITLAB_PROJECT"))+str("/commit_status.")+str(os.getenv("GITLAB_PROJECT"))+str(".")+str(os.getenv("GITLAB_PROJECT_REPO"))+".csv", mode="a", header=False, index=False)
-#         else:
-#             report.to_csv("/home/ec2-user/cs-migration-setup/final_scripts/"+str(os.getenv("GITLAB_PROJECT"))+str("/commit_status.")+str(os.getenv("GITLAB_PROJECT"))+str(".")+str(os.getenv("GITLAB_PROJECT_REPO"))+".csv", index=False)
+    branch_info.to_csv('branch_info.csv')
+
+        
+def get_commit_info(found_repos):
+    counter = 0
+    bb_commits = pd.DataFrame(columns = ['repo_url','id',  'displayId','message','author', 'emailAddress','authorTimestamp', 'status'])
+    for idx, repo in found_repos.iterrows():
+        gl_commit_df = pd.DataFrame(columns = ['repo_url','id', 'author', 'displayName', 'emailAddress','authorTimestamp'])
+        gl_project = gl.projects.get(repo['project_id'])
+        counter += 1
+        if counter == 400:
+            time.sleep(60)
+            counter = 0
+        repo_name = repo['repo_name']
+        repo_url = repo['gl_web_url'].rsplit('/', 1)[-1]
+    # BitBucket Code
+        print(repo_url)
+        group_name = get_repo.get_group_key(repo_name)
+        bitbucket_proj = bitbucket.project(group_name)
+        try:
+            branch_commits = bitbucket.get_commits(bitbucket_proj['key'], repo_url)
+            for commit in branch_commits:
+                
+                bb_commit_dict = {'repo_url':repo_url,
+                'id':commit.get('id'),
+                'displayId':commit.get('displayId'),
+                'message': commit["message"].replace("\n", ""),
+                'author':commit["author"]['name'].lower(), 
+                'emailAddress':commit.get('author').get('emailAddress'),
+                'authorTimestamp':commit.get('authorTimestamp')}
+                
+                # print("BB timestamp",commit.get('authorTimestamp'))
+                             
+                
+                # gl_branch_set = set([x.attributes['name'] for x in gl_project.branches.list(all = True)])
+                # for idx, _commit in bb_commits.iterrows():
+                short_id = commit['displayId']
+                # print(f"GL_{repo_url}__{short_id}")
+                try:
+                    counter += 1
+                    if counter == 400:
+                        time.sleep(60)
+                        counter = 0
+                    gl_commit = gl_project.commits.get(short_id)
+                    
+                    gl_commit = gl_commit.__dict__["_attrs"]
+                    if gl_commit['id'] == commit['id'] and gl_commit['committer_email'].lower() == commit.get('author').get('emailAddress').lower():
+                        print(f"{repo_url}__{short_id}__commit_present")
+                    else:
+                        print(f"{repo_url}__{short_id}__commit_unverified")
+                        bb_commit_dict = dict(bb_commit_dict, **{'status':'Unmatched'})
+                        bb_commits = pd.concat([bb_commits, pd.DataFrame([bb_commit_dict])], ignore_index=True)
+                        # get_details(gl_commit, repo_url)
+                except Exception as exc:
+                    print(f"commit not found for {short_id}")
+                    bb_commit_dict = dict(bb_commit_dict, **{'status':'Missing'})
+                    bb_commits = pd.concat([bb_commits, pd.DataFrame([bb_commit_dict])], ignore_index=True)
+                bb_commits.to_csv(f'./output_commit_logs/{repo_url}.csv', mode='a', index = False, header = False)
+        except Exception as exc:
+            print(exc)
+        
+          
+
+found_repos = pd.read_csv('found_repos.csv')
+# find_branches(found_repos)
+# find_repositories()
+get_commit_info(found_repos)

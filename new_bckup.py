@@ -102,7 +102,7 @@ def get_commit_info(found_repos):
         gl_commit_df = pd.DataFrame(columns = ['repo_url','id', 'author', 'displayName', 'emailAddress','authorTimestamp'])
         gl_project = gl.projects.get(repo['project_id'])
         counter += 1
-        if counter == 400:
+        if counter == 100:
             time.sleep(60)
             counter = 0
         repo_name = repo['repo_name']
@@ -132,7 +132,7 @@ def get_commit_info(found_repos):
                 # print(f"GL_{repo_url}__{short_id}")
                 try:
                     counter += 1
-                    if counter == 400:
+                    if counter == 100:
                         time.sleep(60)
                         counter = 0
                     gl_commit = gl_project.commits.get(short_id)

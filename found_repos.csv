@@ -1,11 +1,11 @@
 repo_name,gl_web_url,project_id
 Nice.ApplicationPlugins.Reconstruction,https://tlvgit03.nice.com/fmc-rd/cs/cs/Nice.ApplicationPlugins.Reconstruction,5331
 Nice.ApplicationPlugins.ComplianceDashboard,https://tlvgit03.nice.com/fmc-rd/cs/cs/Nice.ApplicationPlugins.ComplianceDashboard,5330
-ApplicationPlugins.ComplianceReview,https://tlvgit03.nice.com/abaluapuri/ApplicationPlugins.ComplianceReview,5760
+ApplicationPlugins.ComplianceReview,https://tlvgit03.nice.com/fmc-rd/cs/csp/ApplicationPlugins.ComplianceReview,5767
 Nice.ComplianceReview,https://tlvgit03.nice.com/fmc-rd/cs/css/Nice.ComplianceReview,5462
 ApplicationPlugins.ObserveRunnerConfiguration,https://tlvgit03.nice.com/fmc-rd/cs/csp/ApplicationPlugins.ObserveRunnerConfiguration,5458
-Nice.MediaSources.Files,https://tlvgit03.nice.com/abaluapuri/Nice.MediaSources.Files,5762
-Nice.MediaSources.NIM.MiniBus,https://tlvgit03.nice.com/abaluapuri/Nice.MediaSources.NIM.MiniBus,5763
+Nice.MediaSources.Files,https://tlvgit03.nice.com/fmc-rd/cs/csms/Nice.MediaSources.Files,5769
+Nice.MediaSources.NIM.MiniBus,https://tlvgit03.nice.com/fmc-rd/cs/csms/Nice.MediaSources.NIM.MiniBus,5770
 ApplicationFramework.Jobs,https://tlvgit03.nice.com/fmc-rd/cs/apfjobs/ApplicationFramework.Jobs,5437
 ApplicationFramework.Jobs.Plugins.HistoricalIndexing.NTR,https://tlvgit03.nice.com/fmc-rd/cs/apfjobs/ApplicationFramework.Jobs.Plugins.HistoricalIndexing.NTR,5438
 ApplicationFramework.ExternalUserSources,https://tlvgit03.nice.com/fmc-rd/cs/applicationframework/ApplicationFramework.ExternalUserSources,5431
@@ -20,7 +20,7 @@ Corelibraries.RabbitMq.Clients,https://tlvgit03.nice.com/fmc-rd/cs/in/CoreLibrar
 Corelibraries.RabbitMq,https://tlvgit03.nice.com/fmc-rd/cs/corelibraries/CoreLibraries.RabbitMQ,5420
 Nice.ApplicationFramework,https://tlvgit03.nice.com/fmc-rd/cs/applicationframework/Nice.ApplicationFramework,5432
 Nice.ApplicationFramework.Client,https://tlvgit03.nice.com/fmc-rd/cs/applicationframework/Nice.ApplicationFramework.Client,5433
-ApplicationPlugins.RoleConfiguration,https://tlvgit03.nice.com/abaluapuri/ApplicationPlugins.RoleConfiguration,5761
+ApplicationPlugins.RoleConfiguration,https://tlvgit03.nice.com/fmc-rd/cs/apl/ApplicationPlugins.RoleConfiguration,5771
 Compass.Configuration,https://tlvgit03.nice.com/fmc-rd/cs/com/Compass.Configuration,5442
 Compass.Reporting,https://tlvgit03.nice.com/fmc-rd/cs/com/Compass.Reporting,5443
 UIControls.Explorer,https://tlvgit03.nice.com/fmc-rd/cs/auc/UIControls.Explorer,5435

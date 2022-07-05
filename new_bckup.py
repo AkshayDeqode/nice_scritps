@@ -97,7 +97,7 @@ def find_branches(found_repos):
         
 def get_commit_info(found_repos):
     counter = 0
-    bb_commits = pd.DataFrame(columns = ['repo_url','id',  'displayId','message','author', 'emailAddress','authorTimestamp', 'status'])
+    
     for idx, repo in found_repos.iterrows():
         gl_commit_df = pd.DataFrame(columns = ['repo_url','id', 'author', 'displayName', 'emailAddress','authorTimestamp'])
         gl_project = gl.projects.get(repo['project_id'])
@@ -114,7 +114,7 @@ def get_commit_info(found_repos):
         try:
             branch_commits = bitbucket.get_commits(bitbucket_proj['key'], repo_url)
             for commit in branch_commits:
-                
+                bb_commits = pd.DataFrame(columns = ['repo_url','id',  'displayId','message','author', 'emailAddress','authorTimestamp', 'status'])
                 bb_commit_dict = {'repo_url':repo_url,
                 'id':commit.get('id'),
                 'displayId':commit.get('displayId'),
@@ -138,7 +138,7 @@ def get_commit_info(found_repos):
                     gl_commit = gl_project.commits.get(short_id)
                     
                     gl_commit = gl_commit.__dict__["_attrs"]
-                    if gl_commit['id'] == commit['id'] and gl_commit['committer_email'].lower() == commit.get('author').get('emailAddress').lower():
+                    if gl_commit['id'] == commit['id'] and gl_commit['committer_email'].lower() == commit.get('committer').get('emailAddress').lower() and gl_commit['author_email'].lower() == commit.get('author').get('emailAddress').lower():
                         print(f"{repo_url}__{short_id}__commit_present")
                     else:
                         print(f"{repo_url}__{short_id}__commit_unverified")

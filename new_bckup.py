@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 import os
 import pandas as pd
 from datetime import datetime
+import verify_users
 import get_repo
 import time
 load_dotenv()
@@ -155,7 +156,11 @@ def get_commit_info(found_repos):
         
           
 
+
+
+
 found_repos = pd.read_csv('found_repos.csv')
 # find_branches(found_repos)
 # find_repositories()
-get_commit_info(found_repos)
+# get_commit_info(found_repos)
+verify_users.verify_tags(found_repos, gl, bitbucket)

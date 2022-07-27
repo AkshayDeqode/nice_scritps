@@ -61,12 +61,13 @@ def verify_tags(found_repos, gl: gitlab.Gitlab , bitbucket: Bitbucket):
                         print(f"{repo_url}__{tag['id']}__commit_unverified")
                         bb_tags_dict = dict(bb_tags_dict, **{'status':'Unmatched'})
                         bb_tags = pd.concat([bb_tags, pd.DataFrame([bb_tags_dict])], ignore_index=True)
-                    
+                        bb_tags.to_csv(f'./output_tag_logs/{repo_url}_tags.csv', mode='a', index = False, header = False)
                 except Exception as exc:
                     print(f"Tag not found: {tag['id']}")
                     bb_tags_dict = dict(bb_tags_dict, **{'status':'Missing'})
                     bb_tags = pd.concat([bb_tags, pd.DataFrame([bb_tags_dict])], ignore_index=True)
-                bb_tags.to_csv(f'./output_tag_logs/{repo_url}_tags.csv', mode='a', index = False, header = False)
+                    bb_tags.to_csv(f'./output_tag_logs/{repo_url}_tags.csv', mode='a', index = False, header = False)
         except Exception as exc:
             print(exc)
         
+  

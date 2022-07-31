@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import os
 import json
 from base64 import b64decode
-import get_repo
+
 import time
 load_dotenv()
 class FileLookup():
@@ -20,12 +20,12 @@ class FileLookup():
             accessing Git.
     """
 
-    def __init__(self, project='', runway_dir=''):
+    def __init__(self, project='',git_short = '', runway_dir=''):
         self.project = project
         self.runway_dir = os.path.expandvars(os.path.expanduser(runway_dir))
-
+        self.git_short = git_short
         self.server = None
-        self.project = None
+        self.project = project
 
         if not self.runway_dir:
             self.get_gitlab_project()
@@ -45,7 +45,7 @@ class FileLookup():
         # project = self.server.projects.get(self.project_id)
 
         if not self.project:
-            raise 'Could not get Project "{0}" from GitLab API.'.format(self.git_short)
+            raise Exception('Could not get Project "{0}" from GitLab API.'.format(self.git_short))
 
         # self.project = project
         return self.project
@@ -95,7 +95,7 @@ class FileLookup():
             FileNotFoundError: Requested file missing.
 
         """
-        print('Retrieving "%s" from "%s".', filename, self.git_short)
+        # print('Retrieving "%s" from "%s".', filename, self.git_short)
 
         file_contents = ''
 
@@ -104,7 +104,7 @@ class FileLookup():
         except gitlab.exceptions.GitlabGetError:
             file_blob = None
 
-        print('GitLab file response:\n%s', file_blob)
+        # print('GitLab file response:\n%s', file_blob)
 
         if not file_blob:
             msg = 'Project "{0}" is missing file "{1}" in "{2}" branch.'.format(self.git_short, filename, branch)
@@ -113,7 +113,7 @@ class FileLookup():
 
         file_contents = b64decode(file_blob.content).decode()
 
-        print('Remote file contents:\n%s', file_contents)
+        # print('Remote file contents:\n%s', file_contents)
         return file_contents
 
     def get(self, branch='master', filename=''):

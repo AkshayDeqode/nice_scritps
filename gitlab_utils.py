@@ -38,8 +38,15 @@ class AutomateDotRSP:
     @staticmethod
     def check_path_exists(gl_project,file_path, branch_name):
         try:
-            items = gl_project.repository_tree(path=f'{file_path}', ref=branch_name)
-            return items
+            items = gl_project.repository_tree(path=f'{file_path}', ref=branch_name, all = True)
+            total_items = []
+            total_items.extend(items)
+            for item in items:
+                if item['type'] == 'tree':
+                    temp =  gl_project.repository_tree(path=item['path'], ref=branch_name, all = True)
+                    if len(temp)>0:
+                        total_items.extend(temp)
+            return total_items
         except Exception as exc:
             print(exc)
 
@@ -177,12 +184,10 @@ def target_xml(root):
     url = "https://artifactory.actimize.cloud/artifactory/api/nuget/nuget-release-aws-local"
     for package in root.iter():
             tag_name = package.tag
-            
-            if 'packagesource' == tag_name.lower():
-                if package.attrib['Include']:
+            if 'packagesource' in tag_name.lower():
+                if 'Include' in package.attrib:
                     package.attrib['Include'] = url
-                else:
-                    pass
+    
     tree = ET.ElementTree(root)
     tree.write("temp/target.xml", encoding = "utf-8", xml_declaration = True, default_namespace="") 
         
@@ -220,24 +225,22 @@ def reconfigure_nuget_conf(gl_project, project_dict, file_path, branch_name):
                         traverse_xml(nuconfig_xml_root)   
     except Exception as exc:
         #Project not found
-        print(exc)
+        print("Exception in reading/writing xml for nuget config: ", exc)  
     
 
 
 
 def reconfigure_nugettarget_conf(gl_project, project_dict, file_path, branch_name):
     try:
-                        
-                        #Look up for file 
-                        file_lookup = FileLookup(project= gl_project, git_short= project_dict['path_with_namespace'])
-                        #project found 
-                        file_contents = file_lookup.remote_file(branch=branch_name, filename=file_path)
-                        ET.register_namespace('', "http://schemas.microsoft.com/developer/msbuild/2003")
-                        nuconfig_xml_root = ET.fromstring(file_contents)
-                        target_xml(nuconfig_xml_root)   
+        file_lookup = FileLookup(project= gl_project, git_short= project_dict['path_with_namespace'])
+        #project found 
+        file_contents = file_lookup.remote_file(branch=branch_name, filename=file_path)
+        ET.register_namespace('', "http://schemas.microsoft.com/developer/msbuild/2003")
+        nutarget_xml_root = ET.fromstring(file_contents)
+        target_xml(nutarget_xml_root)
     except Exception as exc:
-        #Project not found
-        print(exc)
+        print("Exception in reading/writing xml for nuget target: ", exc)   
+    
 
 
 if __name__ == '__main__':
@@ -245,5 +248,7 @@ if __name__ == '__main__':
     gl.auth()
     gl_logs = {}
     solution = AutomateDotRSP()
-    solution.add_properties_by_name(gl, 5437, "ApplicationFramework.Jobs", type="x64")
+    # solution.add_properties_by_name(gl, 5437, "ApplicationFramework.Jobs", type="x64")
+    gl_project = gl.projects.get(5771)
+    print(solution.check_path_exists(gl_project, file_path='solutions', branch_name='test-msbuild'))
     # solution.add_properties_rsp(gl)

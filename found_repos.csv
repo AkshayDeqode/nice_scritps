@@ -2,6 +2,7 @@ repo_name,gl_web_url,project_id
 Nice.MediaSources.NTR,https://tlvgit03.nice.com/fmc-rd/cs/cs/Nice.MediaSources.NTR,5346
 Cybertech.CoreApi,https://tlvgit03.nice.com/fmc-rd/cs/essentials/CyberTech.CoreApi,5400
 ApplicationFramework.NDRWrapper,https://tlvgit03.nice.com/fmc-rd/cs/cs/ApplicationFramework.NDRWrapper,5340
+ActiveIntelligenceEngine.Installer.Utils, https://tlvgit03.nice.com/fmc-rd/cs/cs/ActiveIntelligenceEngine.Installer.Utils,5504
 CoreLibraries.Logging,https://tlvgit03.nice.com/fmc-rd/cs/in/CoreLibraries.Logging,5478
 TranscriptionAgent,https://tlvgit03.nice.com/fmc-rd/cs/cs/TranscriptionAgent,5341
 ApplicationPlugins.Fusion.Alarms,https://tlvgit03.nice.com/fmc-rd/cs/fp/ApplicationPlugins.Fusion.Alarms,5468

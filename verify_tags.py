@@ -4,28 +4,6 @@ import get_repo
 import pandas as pd
 import time
 
-def get_bitbucket_users(bitbucket,project_key):
-    return bitbucket.project_users(project_key,  filter_str=None)
-
-
-def get_gitlab_users(project_id):
-    pass
-
-
-def verify_users(found_repos, gl, bitbucket):
-    counter = 0
-    
-    for idx, repo in found_repos.iterrows():
-        gl_project = gl.projects.get(repo['project_id'])
-        repo_name = repo['repo_name']
-        repo_url = repo['gl_web_url'].rsplit('/', 1)[-1]
-        print(repo_url)
-        group_name = get_repo.get_group_key(repo_name)
-        bitbucket_proj = bitbucket.project(group_name)
-        bb_users = get_bitbucket_users(bitbucket=bitbucket, project_key=group_name)
-        for bb_user in bb_users:
-            print(bb_user)
-        break
 
 def verify_tags(found_repos, gl: gitlab.Gitlab , bitbucket: Bitbucket):
     counter = 0   
